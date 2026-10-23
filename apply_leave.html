@@ -268,7 +268,7 @@
                     <tr>
                         <td>PRN Number</td>
                         <td>
-                            <input type="text" id="prn" inputmode="numeric" pattern="[0-9]+" placeholder="Enter PRN (e.g. 12345)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required title="Please enter numbers only">
+                            <input type="text" id="prn" inputmode="numeric" pattern="[0-9]{9}" maxlength="9" placeholder="Enter 9-digit PRN (e.g. 123456789)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9)" required title="PRN must be a 9-digit number">
                         </td>
                     </tr>
 

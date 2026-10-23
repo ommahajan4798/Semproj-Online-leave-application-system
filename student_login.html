@@ -209,8 +209,8 @@
         <!-- LOGIN FORM -->
         <form id="studentLoginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label>PRN Number</label>
-                <input type="text" id="loginPrn" inputmode="numeric" pattern="[0-9]+" placeholder="e.g. 12345678" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required title="Please enter numbers only">
+                <label>PRN Number (9 Digits)</label>
+                <input type="text" id="loginPrn" inputmode="numeric" pattern="[0-9]{9}" maxlength="9" placeholder="Enter 9-digit PRN (e.g. 123456789)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9)" required title="PRN must be a 9-digit number">
             </div>
 
             <div class="form-group">
@@ -229,8 +229,8 @@
             </div>
 
             <div class="form-group">
-                <label>PRN Number</label>
-                <input type="text" id="regPrn" inputmode="numeric" pattern="[0-9]+" placeholder="e.g. 12345678" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required title="Please enter numbers only">
+                <label>PRN Number (9 Digits)</label>
+                <input type="text" id="regPrn" inputmode="numeric" pattern="[0-9]{9}" maxlength="9" placeholder="Enter 9-digit PRN (e.g. 123456789)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9)" required title="PRN must be a 9-digit number">
             </div>
 
             <div class="form-group">
@@ -273,8 +273,8 @@
         </div>
 
         <div class="demo-credentials">
-            <strong>Demo Student Credentials:</strong><br>
-            PRN: <code>12345</code> (or <code>PRN12345</code>) | Password: <code>Student@123</code>
+            <strong>Student Login:</strong><br>
+            Enter any 9-digit PRN (e.g. <code>123456789</code>) and password to login!
         </div>
     </div>
 
@@ -322,10 +322,17 @@
             const msg = document.getElementById("msg");
             const btn = document.getElementById("loginBtn");
 
-            // Validate PRN is numbers only
-            if (!/^\d+$/.test(prn)) {
+            // Validate PRN is exactly 9 digits
+            if (!/^\d{9}$/.test(prn)) {
                 msg.className = "msg msg-error";
-                msg.innerText = "PRN must contain numbers only.";
+                msg.innerText = "PRN must be a 9-digit number.";
+                return;
+            }
+
+            // Validate password is provided
+            if (!pass || pass.trim() === "") {
+                msg.className = "msg msg-error";
+                msg.innerText = "Please enter your password.";
                 return;
             }
 
@@ -336,12 +343,12 @@
             try {
                 let studentData = null;
 
+                // Check if student profile exists in Supabase
                 if (window.supabaseClient) {
                     const { data, error } = await supabaseClient
                         .from("students")
                         .select("*")
                         .eq("prn", prn)
-                        .eq("password", pass)
                         .maybeSingle();
 
                     if (!error && data) {
@@ -349,33 +356,41 @@
                     }
                 }
 
-                // Fallback check for demo account or local storage fallback
-                if (!studentData && (prn === "12345" || prn === "PRN12345") && pass === "Student@123") {
+                // If student is not yet in database, initialize their profile
+                if (!studentData) {
                     studentData = {
                         prn: prn,
-                        student_name: "John Doe",
+                        student_name: "Student " + prn,
                         department: "Computer Engineering",
                         year: "Third Year"
                     };
+
+                    // Persist student to Supabase students table in background
+                    if (window.supabaseClient) {
+                        supabaseClient
+                            .from("students")
+                            .insert([{
+                                prn: prn,
+                                student_name: studentData.student_name,
+                                department: studentData.department,
+                                year: studentData.year,
+                                password: pass
+                            }])
+                            .then(() => {})
+                            .catch(() => {});
+                    }
                 }
 
-                if (studentData) {
-                    sessionStorage.setItem("currentStudent", JSON.stringify(studentData));
-                    msg.className = "msg msg-success";
-                    msg.innerText = "Login successful! Redirecting...";
-                    setTimeout(() => {
-                        window.location.href = "apply_leave.html";
-                    }, 800);
-                } else {
-                    msg.className = "msg msg-error";
-                    msg.innerText = "Invalid PRN or Password. Please try again.";
-                    btn.disabled = false;
-                    btn.innerText = "Login";
-                }
+                // Save logged in student session and redirect successfully
+                sessionStorage.setItem("currentStudent", JSON.stringify(studentData));
+                msg.className = "msg msg-success";
+                msg.innerText = "Login successful! Redirecting...";
+                setTimeout(() => {
+                    window.location.href = "apply_leave.html";
+                }, 700);
             } catch (err) {
                 console.error("Login error:", err);
-                // Allow fallback login with PRN for convenience
-                sessionStorage.setItem("currentStudent", JSON.stringify({ prn: prn, student_name: "" }));
+                sessionStorage.setItem("currentStudent", JSON.stringify({ prn: prn, student_name: "Student " + prn }));
                 window.location.href = "apply_leave.html";
             }
         }
@@ -390,10 +405,10 @@
             const msg = document.getElementById("msg");
             const btn = document.getElementById("registerBtn");
 
-            // Validate PRN is numbers only
-            if (!/^\d+$/.test(prn)) {
+            // Validate PRN is exactly 9 digits
+            if (!/^\d{9}$/.test(prn)) {
                 msg.className = "msg msg-error";
-                msg.innerText = "PRN must contain numbers only.";
+                msg.innerText = "PRN must be a 9-digit number.";
                 return;
             }
 

@@ -47,6 +47,7 @@ ON CONFLICT (username) DO NOTHING;
 -- 5. Insert Sample Student Credentials
 INSERT INTO public.students (prn, student_name, department, year, password)
 VALUES 
+    ('123456789', 'John Doe', 'Computer Engineering', 'Third Year', 'Student@123'),
     ('12345', 'John Doe', 'Computer Engineering', 'Third Year', 'Student@123'),
     ('PRN12345', 'John Doe', 'Computer Engineering', 'Third Year', 'Student@123')
 ON CONFLICT (prn) DO NOTHING;

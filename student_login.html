@@ -210,7 +210,7 @@
         <form id="studentLoginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
                 <label>PRN Number</label>
-                <input type="text" id="loginPrn" placeholder="e.g. PRN12345" required>
+                <input type="text" id="loginPrn" inputmode="numeric" pattern="[0-9]+" placeholder="e.g. 12345678" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required title="Please enter numbers only">
             </div>
 
             <div class="form-group">
@@ -230,7 +230,7 @@
 
             <div class="form-group">
                 <label>PRN Number</label>
-                <input type="text" id="regPrn" placeholder="e.g. PRN12345" required>
+                <input type="text" id="regPrn" inputmode="numeric" pattern="[0-9]+" placeholder="e.g. 12345678" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required title="Please enter numbers only">
             </div>
 
             <div class="form-group">
@@ -274,7 +274,7 @@
 
         <div class="demo-credentials">
             <strong>Demo Student Credentials:</strong><br>
-            PRN: <code>PRN12345</code> | Password: <code>Student@123</code>
+            PRN: <code>12345</code> (or <code>PRN12345</code>) | Password: <code>Student@123</code>
         </div>
     </div>
 
@@ -322,6 +322,13 @@
             const msg = document.getElementById("msg");
             const btn = document.getElementById("loginBtn");
 
+            // Validate PRN is numbers only
+            if (!/^\d+$/.test(prn)) {
+                msg.className = "msg msg-error";
+                msg.innerText = "PRN must contain numbers only.";
+                return;
+            }
+
             btn.disabled = true;
             btn.innerText = "Logging in...";
             msg.innerHTML = "";
@@ -343,9 +350,9 @@
                 }
 
                 // Fallback check for demo account or local storage fallback
-                if (!studentData && prn === "PRN12345" && pass === "Student@123") {
+                if (!studentData && (prn === "12345" || prn === "PRN12345") && pass === "Student@123") {
                     studentData = {
-                        prn: "PRN12345",
+                        prn: prn,
                         student_name: "John Doe",
                         department: "Computer Engineering",
                         year: "Third Year"
@@ -382,6 +389,13 @@
             const pass = document.getElementById("regPassword").value;
             const msg = document.getElementById("msg");
             const btn = document.getElementById("registerBtn");
+
+            // Validate PRN is numbers only
+            if (!/^\d+$/.test(prn)) {
+                msg.className = "msg msg-error";
+                msg.innerText = "PRN must contain numbers only.";
+                return;
+            }
 
             btn.disabled = true;
             btn.innerText = "Registering...";
